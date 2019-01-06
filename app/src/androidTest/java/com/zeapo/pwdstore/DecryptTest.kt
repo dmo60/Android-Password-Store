@@ -5,11 +5,12 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.os.SystemClock
+import android.preference.PreferenceManager
+import android.util.Log
 import androidx.test.InstrumentationRegistry
 import androidx.test.filters.LargeTest
 import androidx.test.rule.ActivityTestRule
 import androidx.test.runner.AndroidJUnit4
-import android.util.Log
 import com.zeapo.pwdstore.crypto.PgpActivity
 import kotlinx.android.synthetic.main.decrypt_layout.*
 import org.apache.commons.io.FileUtils
@@ -61,14 +62,11 @@ class DecryptTest {
 
         assertEquals("/cat1/n1.gpg", PgpActivity.getRelativePath(pathOne, "/fake/path"))
         assertEquals("/cat1/", PgpActivity.getParentPath(pathOne, "/fake/path"))
-        assertEquals("n1", PgpActivity.getName(pathOne, "/fake/path"))
-        // test that even if we append a `/` it still works
-        assertEquals("n1", PgpActivity.getName(pathOne, "/fake/path/"))
+        assertEquals("n1", PgpActivity.getName(pathOne))
 
         assertEquals("/n2.gpg", PgpActivity.getRelativePath(pathTwo, "/fake/path"))
         assertEquals("/", PgpActivity.getParentPath(pathTwo, "/fake/path"))
-        assertEquals("n2", PgpActivity.getName(pathTwo, "/fake/path"))
-        assertEquals("n2", PgpActivity.getName(pathTwo, "/fake/path/"))
+        assertEquals("n2", PgpActivity.getName(pathTwo))
     }
 
     @Test
@@ -93,13 +91,14 @@ class DecryptTest {
 
         // Setup the timer to 1 second
         // first remember the previous timer to set it back later
+        val settings = PreferenceManager.getDefaultSharedPreferences(activity)
         val showTime = try {
-            Integer.parseInt(activity.settings.getString("general_show_time", "45"))
+            Integer.parseInt(settings.getString("general_show_time", "45"))
         } catch (e: NumberFormatException) {
             45
         }
         // second set the new timer
-        activity.settings.edit().putString("general_show_time", "2").commit()
+        settings.edit().putString("general_show_time", "2").commit()
 
         activity.onBound(null)
 
@@ -119,7 +118,7 @@ class DecryptTest {
         assertEquals("", clipboard.primaryClip.getItemAt(0).text)
 
         // set back the timer
-        activity.settings.edit().putString("general_show_time", showTime.toString()).commit()
+        settings.edit().putString("general_show_time", showTime.toString()).commit()
     }
 
     companion object {
